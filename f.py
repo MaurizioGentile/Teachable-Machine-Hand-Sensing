@@ -9,7 +9,7 @@ import math
 import os
 import mediapipe as mp
 
-# Funzione per il rilevamento della mano
+# Hand detection function
 def hand_tracking(frame, classes, predictions, conf_threshold, speakQ):
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands()
@@ -29,19 +29,19 @@ def hand_tracking(frame, classes, predictions, conf_threshold, speakQ):
                 cv2.circle(frame, tuple(landmark), 5, (0, 255, 0), -1)
 
             try:
-                label = speakQ.get_nowait()  # Ottieni il messaggio dalla coda condivisa
+                label = speakQ.get_nowait()  # Get message from shared queue
                 cv2.putText(frame, label, (x + 10, y + h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
             except multiprocessing.queues.Empty:
                 pass
 
     return frame
 
-# Funzione per ottenere il label del riconoscimento
+# Function to obtain the recognition label
 def get_label(classes, current_prediction, conf_threshold):
     max_conf_index = np.argmax(current_prediction)
     max_confidence = current_prediction[max_conf_index]
 
-    # Utilizziamo np.amax per ottenere il massimo valore nell'array di previsioni
+    # We use np.amax to get the maximum value in the prediction array
     max_value = np.amax(current_prediction)
 
     if max_value > conf_threshold:
@@ -49,7 +49,7 @@ def get_label(classes, current_prediction, conf_threshold):
     else:
         return "No Hand Detected"
 
-# Funzione per la sintesi vocale e rilevamento della mano
+#Function for speech synthesis and hand detection
 def speak(speakQ):
     engine = pyttsx3.init()
     volume = engine.getProperty('volume')
@@ -57,7 +57,7 @@ def speak(speakQ):
     last_msg = ""
     while True:
         try:
-            time.sleep(0.1)  # Aggiungi un breve ritardo qui
+            time.sleep(0.1)  # Add a short delay here
             msg = speakQ.get_nowait()
             if msg != last_msg and msg != "Background":
                 last_msg = msg
@@ -94,7 +94,7 @@ def main():
     p1 = multiprocessing.Process(target=speak, args=(speakQ,), daemon=True)
     p1.start()
 
-    last_prediction = None  # Aggiungi questa variabile all'inizio del tuo codice
+    last_prediction = None  #Add this variable to the beginning of your code
 
     while True:
         np.set_printoptions(suppress=True)
@@ -112,7 +112,7 @@ def main():
 
         predictions = model.predict(data)
 
-        # Solo se la prediction cambia, aggiorna il label dell'hand tracker
+        # Only if the prediction changes, update the hand tracker label
         if last_prediction is None or not np.array_equal(predictions, last_prediction):
             conf_threshold = 90
             confidence = []
@@ -165,7 +165,7 @@ def main():
                 color=(255, 255, 255)
             )
 
-            # Esegui il rilevamento della mano e aggiorna il frame
+            # Perform hand detection and update the frame
             frame_with_hand = hand_tracking(bordered_frame, classes, predictions[0], conf_threshold, speakQ)
 
             cv2.imshow("Capturing", frame_with_hand)

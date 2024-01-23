@@ -57,7 +57,7 @@ def speak(speakQ):
     last_msg = ""
     while True:
         try:
-            time.sleep(0.1)  # (neww)Add a short delay here
+            time.sleep(0.1)  # (new)Add a short delay here
             msg = speakQ.get_nowait()
             if msg != last_msg and msg != "Background":
                 last_msg = msg
